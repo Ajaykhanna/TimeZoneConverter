@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Glow Time Zone Comparator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(102, 204, 255, 0.7);
+            background: linear-gradient(90deg, #00dbde, #fc00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 50px;
+            border: none;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.3);
+            border: 1px solid rgba(102, 204, 255, 0.3);
+        }
+
+        .search-box:focus {
+            outline: none;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.5);
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .suggestions {
+            position: absolute;
+            width: 100%;
+            background: rgba(10, 10, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 5px;
+            display: none;
+            border: 1px solid rgba(102, 204, 255, 0.3);
+        }
+
+        .suggestion-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(102, 204, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(0, 100, 200, 0.3);
+            box-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+        }
+
+        .suggestion-item strong {
+            display: block;
+            font-size: 1.1rem;
+        }
+
+        .suggestion-item span {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .clocks-container {
+            display: flex;
+            overflow-x: auto;
+            padding: 20px 10px;
+            gap: 30px;
+            margin-bottom: 40px;
+            scrollbar-width: thin;
+            scrollbar-color: #00ccff #2c3e50;
+        }
+
+        .clocks-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .clocks-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .clocks-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, #00dbde, #fc00ff);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+        }
+
+        .timezone-card {
+            min-width: 280px;
+            background: rgba(10, 15, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 204, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .timezone-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 150, 255, 0.3);
+            border: 1px solid rgba(102, 204, 255, 0.4);
+        }
+
+        .timezone-header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .timezone-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            text-shadow: 0 0 8px rgba(102, 204, 255, 0.5);
+        }
+
+        .remove-btn {
+            background: rgba(255, 50, 50, 0.2);
+            border: none;
+            color: #ff4d4d;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 8px rgba(255, 50, 50, 0.3);
+        }
+
+        .remove-btn:hover {
+            background: rgba(255, 50, 50, 0.4);
+            transform: scale(1.1);
+            box-shadow: 0 0 12px rgba(255, 50, 50, 0.5);
+        }
+
+        .analog-clock {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.3);
+            position: relative;
+            margin-bottom: 25px;
+            box-shadow: 
+                inset 0 0 20px rgba(0, 0, 0, 0.5),
+                0 0 20px rgba(0, 150, 255, 0.2);
+            border: 2px solid rgba(102, 204, 255, 0.3);
+        }
+
+        .clock-face {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            border-radius: 10px;
+            transform: translateX(-50%);
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 35%;
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 45%;
+            background: #00ccff;
+            box-shadow: 0 0 10px #00ccff;
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 50%;
+            background: #ff00aa;
+            box-shadow: 0 0 10px #ff00aa;
+        }
+
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background: #ff00aa;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 0 10px #ff00aa;
+        }
+
+        /* Clock numbers */
+        .clock-number {
+            position: absolute;
+            font-size: 16px;
+            font-weight: bold;
+            color: #00ccff;
+            text-shadow: 0 0 10px #00ccff;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
+        }
+
+        .digital-clock {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px rgba(0, 200, 255, 0.8);
+            color: #00ccff;
+        }
+
+        .date-display {
+            font-size: 1rem;
+            opacity: 0.9;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .timezone-select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 204, 255, 0.3);
+            color: white;
+            font-size: 1rem;
+            margin-top: 15px;
+            box-shadow: 0 0 10px rgba(0, 150, 255, 0.2);
+        }
+
+        .timezone-select:focus {
+            outline: none;
+            border-color: #00ccff;
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+        }
+
+        .add-timezone {
+            min-width: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 100, 200, 0.2);
+            border: 2px dashed rgba(102, 204, 255, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-timezone:hover {
+            background: rgba(0, 100, 200, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
+            border: 2px dashed rgba(102, 204, 255, 0.7);
+        }
+
+        .add-btn {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #00ccff;
+            text-shadow: 0 0 15px #00ccff;
+        }
+
+        .add-text {
+            font-size: 1.2rem;
+            font-weight: 500;
+            text-shadow: 0 0 8px rgba(102, 204, 255, 0.5);
+        }
+
+        .summary-section {
+            background: rgba(10, 15, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 204, 255, 0.2);
+            margin-top: 20px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 0 10px rgba(102, 204, 255, 0.5);
+        }
+
+        .section-title i {
+            color: #00ccff;
+            text-shadow: 0 0 10px #00ccff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(102, 204, 255, 0.1);
+        }
+
+        th {
+            background: rgba(0, 100, 200, 0.2);
+            font-weight: 600;
+            text-shadow: 0 0 8px rgba(102, 204, 255, 0.3);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(0, 100, 200, 0.1);
+        }
+
+        .difference.positive {
+            color: #4affa1;
+            text-shadow: 0 0 8px rgba(74, 255, 161, 0.5);
+        }
+
+        .difference.negative {
+            color: #ff4d8d;
+            text-shadow: 0 0 8px rgba(255, 77, 141, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .clocks-container {
+                gap: 20px;
+                padding: 15px 5px;
+            }
+            
+            .timezone-card, .add-timezone {
+                min-width: 240px;
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .digital-clock {
+                font-size: 1.8rem;
+            }
+            
+            th, td {
+                padding: 12px 8px;
+                font-size: 0.9rem;
+            }
+            
+            .search-box {
+                padding: 12px 15px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .timezone-card, .add-timezone {
+                min-width: 200px;
+                padding: 15px;
+            }
+            
+            .analog-clock {
+                width: 140px;
+                height: 140px;
+            }
+            
+            .digital-clock {
+                font-size: 1.5rem;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
+            .suggestions {
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-globe-americas"></i> Neon Glow Time Zone Comparator</h1>
+            <p class="subtitle">Compare time zones across the world with glowing analog clocks</p>
+        </header>
+
+        <div class="search-container">
+            <input type="text" class="search-box" id="timezoneSearch" placeholder="Search for a city, state, or country...">
+            <div class="suggestions" id="suggestionsContainer"></div>
+        </div>
+
+        <div class="clocks-container" id="clocksContainer">
+            <!-- Timezone cards will be added here dynamically -->
+        </div>
+
+        <div class="summary-section">
+            <h2 class="section-title"><i class="fas fa-table"></i> At a Glance Summary</h2>
+            <table id="summaryTable">
+                <thead>
+                    <tr>
+                        <th>Location</th>
+                        <th>Current Time</th>
+                        <th>Difference</th>
+                    </tr>
+                </thead>
+                <tbody id="summaryTableBody">
+                    <!-- Table rows will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Exhaustive list of time zones with labels
+        const timeZones = [
+            // Custom default timezones (all unique)
+            { value: 'America/Denver', label: 'Denver, Colorado (MST/MDT)', city: 'Denver', country: 'United States' },
+            { value: 'America/Los_Angeles', label: 'Los Angeles, CA (PST/PDT)', city: 'Irvine', country: 'United States' },
+            { value: 'America/Chicago', label: 'Chicago, IL (CST/CDT)', city: 'Chicago', country: 'United States' },
+            { value: 'America/Argentina/Buenos_Aires', label: 'Bernal, Argentina (ART)', city: 'Bernal', country: 'Argentina' },
+            { value: 'Europe/Rome', label: 'Bologna, Italy (CET/CEST)', city: 'Bologna', country: 'Italy' },
+            
+            // Major cities around the world
+            { value: 'America/New_York', label: 'New York (EST/EDT)', city: 'New York', country: 'United States' },
+            { value: 'America/Anchorage', label: 'Anchorage (AKST/AKDT)', city: 'Anchorage', country: 'United States' },
+            { value: 'America/Honolulu', label: 'Honolulu (HST)', city: 'Honolulu', country: 'United States' },
+            { value: 'America/Toronto', label: 'Toronto (EST/EDT)', city: 'Toronto', country: 'Canada' },
+            { value: 'America/Vancouver', label: 'Vancouver (PST/PDT)', city: 'Vancouver', country: 'Canada' },
+            { value: 'America/Mexico_City', label: 'Mexico City (CST/CDT)', city: 'Mexico City', country: 'Mexico' },
+            { value: 'America/Sao_Paulo', label: 'São Paulo (BRT/BRST)', city: 'São Paulo', country: 'Brazil' },
+            { value: 'America/Buenos_Aires', label: 'Buenos Aires (ART)', city: 'Buenos Aires', country: 'Argentina' },
+            { value: 'America/Lima', label: 'Lima (PET)', city: 'Lima', country: 'Peru' },
+            { value: 'America/Santiago', label: 'Santiago (CLT/CLST)', city: 'Santiago', country: 'Chile' },
+            { value: 'Europe/London', label: 'London (GMT/BST)', city: 'London', country: 'United Kingdom' },
+            { value: 'Europe/Paris', label: 'Paris (CET/CEST)', city: 'Paris', country: 'France' },
+            { value: 'Europe/Berlin', label: 'Berlin (CET/CEST)', city: 'Berlin', country: 'Germany' },
+            { value: 'Europe/Madrid', label: 'Madrid (CET/CEST)', city: 'Madrid', country: 'Spain' },
+            { value: 'Europe/Amsterdam', label: 'Amsterdam (CET/CEST)', city: 'Amsterdam', country: 'Netherlands' },
+            { value: 'Europe/Stockholm', label: 'Stockholm (CET/CEST)', city: 'Stockholm', country: 'Sweden' },
+            { value: 'Europe/Moscow', label: 'Moscow (MSK)', city: 'Moscow', country: 'Russia' },
+            { value: 'Europe/Istanbul', label: 'Istanbul (TRT)', city: 'Istanbul', country: 'Turkey' },
+            { value: 'Africa/Cairo', label: 'Cairo (EET)', city: 'Cairo', country: 'Egypt' },
+            { value: 'Africa/Lagos', label: 'Lagos (WAT)', city: 'Lagos', country: 'Nigeria' },
+            { value: 'Africa/Johannesburg', label: 'Johannesburg (SAST)', city: 'Johannesburg', country: 'South Africa' },
+            { value: 'Asia/Jerusalem', label: 'Jerusalem (IST)', city: 'Jerusalem', country: 'Israel' },
+            { value: 'Asia/Dubai', label: 'Dubai (GST)', city: 'Dubai', country: 'United Arab Emirates' },
+            { value: 'Asia/Qatar', label: 'Doha (AST)', city: 'Doha', country: 'Qatar' },
+            { value: 'Asia/Riyadh', label: 'Riyadh (AST)', city: 'Riyadh', country: 'Saudi Arabia' },
+            { value: 'Asia/Tehran', label: 'Tehran (IRST)', city: 'Tehran', country: 'Iran' },
+            { value: 'Asia/Kolkata', label: 'Mumbai (IST)', city: 'Mumbai', country: 'India' },
+            { value: 'Asia/Karachi', label: 'Karachi (PKT)', city: 'Karachi', country: 'Pakistan' },
+            { value: 'Asia/Dhaka', label: 'Dhaka (BST)', city: 'Dhaka', country: 'Bangladesh' },
+            { value: 'Asia/Kathmandu', label: 'Kathmandu (NPT)', city: 'Kathmandu', country: 'Nepal' },
+            { value: 'Asia/Colombo', label: 'Colombo (IST)', city: 'Colombo', country: 'Sri Lanka' },
+            { value: 'Asia/Almaty', label: 'Almaty (ALMT)', city: 'Almaty', country: 'Kazakhstan' },
+            { value: 'Asia/Bangkok', label: 'Bangkok (ICT)', city: 'Bangkok', country: 'Thailand' },
+            { value: 'Asia/Jakarta', label: 'Jakarta (WIB)', city: 'Jakarta', country: 'Indonesia' },
+            { value: 'Asia/Singapore', label: 'Singapore (SGT)', city: 'Singapore', country: 'Singapore' },
+            { value: 'Asia/Kuala_Lumpur', label: 'Kuala Lumpur (MYT)', city: 'Kuala Lumpur', country: 'Malaysia' },
+            { value: 'Asia/Tokyo', label: 'Tokyo (JST)', city: 'Tokyo', country: 'Japan' },
+            { value: 'Asia/Seoul', label: 'Seoul (KST)', city: 'Seoul', country: 'South Korea' },
+            { value: 'Asia/Shanghai', label: 'Shanghai (CST)', city: 'Shanghai', country: 'China' },
+            { value: 'Asia/Hong_Kong', label: 'Hong Kong (HKT)', city: 'Hong Kong', country: 'China' },
+            { value: 'Asia/Taipei', label: 'Taipei (CST)', city: 'Taipei', country: 'Taiwan' },
+            { value: 'Asia/Manila', label: 'Manila (PHT)', city: 'Manila', country: 'Philippines' },
+            { value: 'Australia/Sydney', label: 'Sydney (AEST/AEDT)', city: 'Sydney', country: 'Australia' },
+            { value: 'Australia/Melbourne', label: 'Melbourne (AEST/AEDT)', city: 'Melbourne', country: 'Australia' },
+            { value: 'Australia/Brisbane', label: 'Brisbane (AEST)', city: 'Brisbane', country: 'Australia' },
+            { value: 'Australia/Perth', label: 'Perth (AWST)', city: 'Perth', country: 'Australia' },
+            { value: 'Pacific/Auckland', label: 'Auckland (NZST/NZDT)', city: 'Auckland', country: 'New Zealand' },
+            { value: 'Pacific/Fiji', label: 'Fiji (FJT)', city: 'Fiji', country: 'Fiji' },
+            { value: 'Pacific/Honolulu', label: 'Honolulu (HST)', city: 'Honolulu', country: 'United States' },
+            { value: 'Atlantic/Reykjavik', label: 'Reykjavik (GMT)', city: 'Reykjavik', country: 'Iceland' },
+            { value: 'America/St_Johns', label: 'St. Johns (NST/NDT)', city: 'St. Johns', country: 'Canada' },
+            { value: 'Asia/Yerevan', label: 'Yerevan (AMT)', city: 'Yerevan', country: 'Armenia' },
+            { value: 'Asia/Baku', label: 'Baku (AZT)', city: 'Baku', country: 'Azerbaijan' },
+            { value: 'Asia/Tbilisi', label: 'Tbilisi (GET)', city: 'Tbilisi', country: 'Georgia' },
+            { value: 'Europe/Kiev', label: 'Kyiv (EET/EEST)', city: 'Kyiv', country: 'Ukraine' },
+            { value: 'Europe/Minsk', label: 'Minsk (MSK)', city: 'Minsk', country: 'Belarus' },
+            { value: 'Europe/Sofia', label: 'Sofia (EET/EEST)', city: 'Sofia', country: 'Bulgaria' },
+            { value: 'Europe/Bucharest', label: 'Bucharest (EET/EEST)', city: 'Bucharest', country: 'Romania' },
+            { value: 'Europe/Athens', label: 'Athens (EET/EEST)', city: 'Athens', country: 'Greece' },
+            { value: 'Europe/Helsinki', label: 'Helsinki (EET/EEST)', city: 'Helsinki', country: 'Finland' },
+            { value: 'Europe/Oslo', label: 'Oslo (CET/CEST)', city: 'Oslo', country: 'Norway' },
+            { value: 'Europe/Copenhagen', label: 'Copenhagen (CET/CEST)', city: 'Copenhagen', country: 'Denmark' },
+            { value: 'Europe/Vienna', label: 'Vienna (CET/CEST)', city: 'Vienna', country: 'Austria' },
+            { value: 'Europe/Zurich', label: 'Zurich (CET/CEST)', city: 'Zurich', country: 'Switzerland' },
+            { value: 'Europe/Brussels', label: 'Brussels (CET/CEST)', city: 'Brussels', country: 'Belgium' },
+            { value: 'Europe/Luxembourg', label: 'Luxembourg (CET/CEST)', city: 'Luxembourg', country: 'Luxembourg' },
+            { value: 'Europe/Prague', label: 'Prague (CET/CEST)', city: 'Prague', country: 'Czech Republic' },
+            { value: 'Europe/Warsaw', label: 'Warsaw (CET/CEST)', city: 'Warsaw', country: 'Poland' },
+            { value: 'Europe/Budapest', label: 'Budapest (CET/CEST)', city: 'Budapest', country: 'Hungary' },
+            { value: 'Europe/Belgrade', label: 'Belgrade (CET/CEST)', city: 'Belgrade', country: 'Serbia' },
+            { value: 'Europe/Zagreb', label: 'Zagreb (CET/CEST)', city: 'Zagreb', country: 'Croatia' },
+            { value: 'Europe/Ljubljana', label: 'Ljubljana (CET/CEST)', city: 'Ljubljana', country: 'Slovenia' },
+            { value: 'Europe/Sarajevo', label: 'Sarajevo (CET/CEST)', city: 'Sarajevo', country: 'Bosnia and Herzegovina' },
+            { value: 'Europe/Skopje', label: 'Skopje (CET/CEST)', city: 'Skopje', country: 'North Macedonia' },
+            { value: 'Europe/Podgorica', label: 'Podgorica (CET/CEST)', city: 'Podgorica', country: 'Montenegro' },
+            { value: 'Europe/Tirane', label: 'Tirane (CET/CEST)', city: 'Tirane', country: 'Albania' },
+            { value: 'Europe/San_Marino', label: 'San Marino (CET/CEST)', city: 'San Marino', country: 'San Marino' },
+            { value: 'Europe/Vatican', label: 'Vatican City (CET/CEST)', city: 'Vatican City', country: 'Vatican City' },
+            { value: 'Europe/Monaco', label: 'Monaco (CET/CEST)', city: 'Monaco', country: 'Monaco' },
+            { value: 'Europe/Andorra', label: 'Andorra (CET/CEST)', city: 'Andorra', country: 'Andorra' },
+            { value: 'Europe/Liechtenstein', label: 'Vaduz (CET/CEST)', city: 'Vaduz', country: 'Liechtenstein' },
+            { value: 'Asia/Kuwait', label: 'Kuwait City (AST)', city: 'Kuwait City', country: 'Kuwait' },
+            { value: 'Asia/Bahrain', label: 'Manama (AST)', city: 'Manama', country: 'Bahrain' },
+            { value: 'Asia/Muscat', label: 'Muscat (GST)', city: 'Muscat', country: 'Oman' },
+            { value: 'Asia/Baghdad', label: 'Baghdad (AST)', city: 'Baghdad', country: 'Iraq' },
+            { value: 'Asia/Amman', label: 'Amman (EET/EEST)', city: 'Amman', country: 'Jordan' },
+            { value: 'Asia/Beirut', label: 'Beirut (EET/EEST)', city: 'Beirut', country: 'Lebanon' },
+            { value: 'Asia/Damascus', label: 'Damascus (EET/EEST)', city: 'Damascus', country: 'Syria' },
+            { value: 'Asia/Nicosia', label: 'Nicosia (EET/EEST)', city: 'Nicosia', country: 'Cyprus' },
+            { value: 'Africa/Tunis', label: 'Tunis (CET/CEST)', city: 'Tunis', country: 'Tunisia' },
+            { value: 'Africa/Algiers', label: 'Algiers (CET)', city: 'Algiers', country: 'Algeria' },
+            { value: 'Africa/Casablanca', label: 'Casablanca (WET/WEST)', city: 'Casablanca', country: 'Morocco' },
+            { value: 'Africa/Nairobi', label: 'Nairobi (EAT)', city: 'Nairobi', country: 'Kenya' },
+            { value: 'Africa/Khartoum', label: 'Khartoum (CAT)', city: 'Khartoum', country: 'Sudan' },
+            { value: 'Africa/Addis_Ababa', label: 'Addis Ababa (EAT)', city: 'Addis Ababa', country: 'Ethiopia' },
+            { value: 'Africa/Dar_es_Salaam', label: 'Dar es Salaam (EAT)', city: 'Dar es Salaam', country: 'Tanzania' },
+            { value: 'Africa/Kampala', label: 'Kampala (EAT)', city: 'Kampala', country: 'Uganda' },
+            { value: 'Africa/Kigali', label: 'Kigali (CAT)', city: 'Kigali', country: 'Rwanda' },
+            { value: 'Africa/Bujumbura', label: 'Bujumbura (CAT)', city: 'Bujumbura', country: 'Burundi' },
+            { value: 'Africa/Lusaka', label: 'Lusaka (CAT)', city: 'Lusaka', country: 'Zambia' },
+            { value: 'Africa/Harare', label: 'Harare (CAT)', city: 'Harare', country: 'Zimbabwe' },
+            { value: 'Africa/Maputo', label: 'Maputo (CAT)', city: 'Maputo', country: 'Mozambique' },
+            { value: 'Africa/Blantyre', label: 'Blantyre (CAT)', city: 'Blantyre', country: 'Malawi' },
+            { value: 'Africa/Lilongwe', label: 'Lilongwe (CAT)', city: 'Lilongwe', country: 'Malawi' },
+            { value: 'Africa/Gaborone', label: 'Gaborone (CAT)', city: 'Gaborone', country: 'Botswana' },
+            { value: 'Africa/Maseru', label: 'Maseru (SAST)', city: 'Maseru', country: 'Lesotho' },
+            { value: 'Africa/Mbabane', label: 'Mbabane (SAST)', city: 'Mbabane', country: 'Eswatini' },
+            { value: 'Africa/Juba', label: 'Juba (EAT)', city: 'Juba', country: 'South Sudan' },
+            { value: 'Indian/Mauritius', label: 'Port Louis (MUT)', city: 'Port Louis', country: 'Mauritius' },
+            { value: 'Indian/Reunion', label: 'Saint-Denis (RET)', city: 'Saint-Denis', country: 'Réunion' },
+            { value: 'Indian/Maldives', label: 'Malé (MVT)', city: 'Malé', country: 'Maldives' },
+            { value: 'Indian/Chagos', label: 'Diego Garcia (IOT)', city: 'Diego Garcia', country: 'British Indian Ocean Territory' },
+            { value: 'Indian/Kerguelen', label: 'Port-aux-Français (TFT)', city: 'Port-aux-Français', country: 'French Southern Territories' },
+            { value: 'Indian/Mahe', label: 'Victoria (SCT)', city: 'Victoria', country: 'Seychelles' },
+            { value: 'Indian/Comoro', label: 'Moroni (EAT)', city: 'Moroni', country: 'Comoros' },
+            { value: 'Indian/Antananarivo', label: 'Antananarivo (EAT)', city: 'Antananarivo', country: 'Madagascar' },
+            { value: 'Pacific/Tahiti', label: 'Papeete (TAHT)', city: 'Papeete', country: 'French Polynesia' },
+            { value: 'Pacific/Marquesas', label: 'Taiohae (MART)', city: 'Taiohae', country: 'French Polynesia' },
+            { value: 'Pacific/Gambier', label: 'Gambier Islands (GAMT)', city: 'Gambier Islands', country: 'French Polynesia' },
+            { value: 'Pacific/Pitcairn', label: 'Adamstown (PST)', city: 'Adamstown', country: 'Pitcairn Islands' },
+            { value: 'Pacific/Easter', label: 'Easter Island (EAST/EASST)', city: 'Easter Island', country: 'Chile' },
+            { value: 'Pacific/Galapagos', label: 'Galápagos Islands (GALT)', city: 'Galápagos Islands', country: 'Ecuador' },
+            { value: 'Pacific/Palmer', label: 'Palmer Station (CLT/CLST)', city: 'Palmer Station', country: 'Antarctica' },
+            { value: 'Pacific/Rothera', label: 'Rothera Station (ART)', city: 'Rothera Station', country: 'Antarctica' },
+            { value: 'Pacific/Syowa', label: 'Syowa Station (SYOT)', city: 'Syowa Station', country: 'Antarctica' },
+            { value: 'Pacific/Mawson', label: 'Mawson Station (MAWT)', city: 'Mawson Station', country: 'Antarctica' },
+            { value: 'Pacific/Vostok', label: 'Vostok Station (VOST)', city: 'Vostok Station', country: 'Antarctica' },
+            { value: 'Pacific/Davis', label: 'Davis Station (DAVT)', city: 'Davis Station', country: 'Antarctica' },
+            { value: 'Pacific/Casey', label: 'Casey Station (CAST/AWST)', city: 'Casey Station', country: 'Antarctica' },
+            { value: 'Pacific/DumontDUrville', label: 'Dumont d\'Urville Station (DDUT)', city: 'Dumont d\'Urville Station', country: 'Antarctica' },
+            { value: 'Pacific/McMurdo', label: 'McMurdo Station (NZST/NZDT)', city: 'McMurdo Station', country: 'Antarctica' },
+            { value: 'Antarctica/Troll', label: 'Troll Station (UTC/CEST)', city: 'Troll Station', country: 'Antarctica' },
+            { value: 'Antarctica/Vostok', label: 'Vostok Station (VOST)', city: 'Vostok Station', country: 'Antarctica' },
+            { value: 'Antarctica/Syowa', label: 'Syowa Station (SYOT)', city: 'Syowa Station', country: 'Antarctica' },
+            { value: 'Antarctica/Mawson', label: 'Mawson Station (MAWT)', city: 'Mawson Station', country: 'Antarctica' },
+            { value: 'Antarctica/Davis', label: 'Davis Station (DAVT)', city: 'Davis Station', country: 'Antarctica' },
+            { value: 'Antarctica/Casey', label: 'Casey Station (CAST/AWST)', city: 'Casey Station', country: 'Antarctica' },
+            { value: 'Antarctica/DumontDUrville', label: 'Dumont d\'Urville Station (DDUT)', city: 'Dumont d\'Urville Station', country: 'Antarctica' },
+            { value: 'Antarctica/McMurdo', label: 'McMurdo Station (NZST/NZDT)', city: 'McMurdo Station', country: 'Antarctica' },
+            { value: 'Antarctica/Palmer', label: 'Palmer Station (CLT/CLST)', city: 'Palmer Station', country: 'Antarctica' },
+            { value: 'Antarctica/Rothera', label: 'Rothera Station (ART)', city: 'Rothera Station', country: 'Antarctica' }
+        ];
+
+        // Store timezone data
+        let timezoneData = [];
+
+        // Initialize with custom default timezones (all unique)
+        function initializeTimezones() {
+            addTimezone('America/Denver'); // Denver, CO (MST/MDT)
+            addTimezone('America/Los_Angeles'); // Irvine, CA (PST/PDT)
+            addTimezone('America/Chicago'); // Chicago, IL (CST/CDT) - Replaced Richmond, WA
+            addTimezone('America/Argentina/Buenos_Aires'); // Bernal, Argentina (ART)
+            addTimezone('Europe/Rome'); // Bologna, Italy (CET/CEST)
+        }
+
+        // Add a new timezone
+        function addTimezone(timezoneId) {
+            const timezone = timeZones.find(tz => tz.value === timezoneId);
+            if (!timezone) return;
+
+            const id = timezoneData.length;
+            timezoneData.push({
+                id: id,
+                timezoneId: timezoneId,
+                label: timezone.label,
+                city: timezone.city,
+                country: timezone.country,
+                time: new Date()
+            });
+
+            renderTimezoneCard(id);
+            updateSummaryTable();
+        }
+
+        // Remove a timezone
+        function removeTimezone(id) {
+            timezoneData = timezoneData.filter(tz => tz.id !== id);
+            renderAll();
+        }
+
+        // Render all timezones
+        function renderAll() {
+            const container = document.getElementById('clocksContainer');
+            container.innerHTML = '';
+            
+            timezoneData.forEach((tz, index) => {
+                renderTimezoneCard(tz.id);
+            });
+            
+            renderAddButton();
+            updateSummaryTable();
+        }
+
+        // Render a single timezone card
+        function renderTimezoneCard(id) {
+            const container = document.getElementById('clocksContainer');
+            const tz = timezoneData.find(t => t.id === id);
+            
+            if (!tz) return;
+            
+            const card = document.createElement('div');
+            card.className = 'timezone-card';
+            card.innerHTML = `
+                <div class="timezone-header">
+                    <div class="timezone-title">${tz.label}</div>
+                    <button class="remove-btn" onclick="removeTimezone(${id})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="analog-clock" id="clock-${id}">
+                    <div class="clock-face">
+                        <div class="hand hour-hand" id="hour-${id}"></div>
+                        <div class="hand minute-hand" id="minute-${id}"></div>
+                        <div class="hand second-hand" id="second-${id}"></div>
+                        <div class="center-circle"></div>
+                    </div>
+                </div>
+                <div class="digital-clock" id="digital-${id}">00:00:00 AM</div>
+                <div class="date-display" id="date-${id}">January 1, 2023</div>
+                <select class="timezone-select" onchange="changeTimezone(${id}, this.value)">
+                    ${timeZones.map(tzOption => 
+                        `<option value="${tzOption.value}" ${tzOption.value === tz.timezoneId ? 'selected' : ''}>${tzOption.label}</option>`
+                    ).join('')}
+                </select>
+            `;
+            
+            container.appendChild(card);
+            
+            // Add numbers to the clock face
+            addClockNumbers(id);
+        }
+
+        // Add numbers to the clock face
+        function addClockNumbers(clockId) {
+            const clockFace = document.querySelector(`#clock-${clockId} .clock-face`);
+            const numbers = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+            const radius = 75; // Adjust based on clock size
+            
+            numbers.forEach((num, index) => {
+                const angle = (index * 30) * (Math.PI / 180); // 30 degrees per hour
+                const x = 90 + radius * Math.sin(angle); // 90 is center
+                const y = 90 - radius * Math.cos(angle); // 90 is center
+                
+                const numberElement = document.createElement('div');
+                numberElement.className = 'clock-number';
+                numberElement.textContent = num;
+                numberElement.style.left = `${x - 10}px`;
+                numberElement.style.top = `${y - 10}px`;
+                
+                clockFace.appendChild(numberElement);
+            });
+        }
+
+        // Render the add button
+        function renderAddButton() {
+            const container = document.getElementById('clocksContainer');
+            
+            const addButton = document.createElement('div');
+            addButton.className = 'add-timezone';
+            addButton.innerHTML = `
+                <div class="add-btn"><i class="fas fa-plus-circle"></i></div>
+                <div class="add-text">Add Time Zone</div>
+            `;
+            
+            addButton.addEventListener('click', () => {
+                // Add first timezone that's not already added
+                const availableTimezone = timeZones.find(tz => 
+                    !timezoneData.some(t => t.timezoneId === tz.value)
+                );
+                
+                if (availableTimezone) {
+                    addTimezone(availableTimezone.value);
+                } else {
+                    alert('All available time zones are already added!');
+                }
+            });
+            
+            container.appendChild(addButton);
+        }
+
+        // Change timezone for a card
+        function changeTimezone(id, newTimezoneId) {
+            const tz = timezoneData.find(t => t.id === id);
+            if (tz) {
+                tz.timezoneId = newTimezoneId;
+                const timezone = timeZones.find(t => t.value === newTimezoneId);
+                if (timezone) {
+                    tz.label = timezone.label;
+                    tz.city = timezone.city;
+                    tz.country = timezone.country;
+                }
+                updateSummaryTable();
+            }
+        }
+
+        // Update clock display
+        function updateClocks() {
+            timezoneData.forEach(tz => {
+                // Update time
+                tz.time = new Date();
+                
+                // Get timezone offset for 12-hour format
+                const options = { 
+                    timeZone: tz.timezoneId, 
+                    hour12: true,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                };
+                
+                const timeString = tz.time.toLocaleTimeString('en-US', options);
+                const dateString = tz.time.toLocaleDateString('en-US', { 
+                    timeZone: tz.timezoneId, 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                // Update digital clock
+                document.getElementById(`digital-${tz.id}`).textContent = timeString;
+                document.getElementById(`date-${tz.id}`).textContent = dateString;
+                
+                // Update analog clock (using 24-hour format for calculations)
+                const hour24Options = { timeZone: tz.timezoneId, hour12: false };
+                const time24String = tz.time.toLocaleTimeString('en-US', hour24Options);
+                const [hours24, minutes, seconds] = time24String.split(':').map(Number);
+                
+                const hourDeg = (hours24 % 12) * 30 + minutes * 0.5;
+                const minuteDeg = minutes * 6 + seconds * 0.1;
+                const secondDeg = seconds * 6;
+                
+                document.getElementById(`hour-${tz.id}`).style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+                document.getElementById(`minute-${tz.id}`).style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+                document.getElementById(`second-${tz.id}`).style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+            });
+        }
+
+        // Update summary table
+        function updateSummaryTable() {
+            const tableBody = document.getElementById('summaryTableBody');
+            tableBody.innerHTML = '';
+            
+            if (timezoneData.length === 0) return;
+            
+            const baseTimezone = timezoneData[0];
+            
+            timezoneData.forEach(tz => {
+                const row = document.createElement('tr');
+                
+                // Get timezone offset for 12-hour format
+                const options = { 
+                    timeZone: tz.timezoneId, 
+                    hour12: true,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                };
+                
+                const timeString = tz.time.toLocaleTimeString('en-US', options);
+                const dateString = tz.time.toLocaleDateString('en-US', { 
+                    timeZone: tz.timezoneId, 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                // Calculate difference
+                let difference = '';
+                let differenceClass = '';
+                
+                if (tz.id !== baseTimezone.id) {
+                    const baseOffset = getTimezoneOffset(baseTimezone.timezoneId);
+                    const currentOffset = getTimezoneOffset(tz.timezoneId);
+                    const diffHours = (currentOffset - baseOffset) / 60;
+                    
+                    // Format to 2 decimal places
+                    const formattedDiff = diffHours.toFixed(2);
+                    
+                    if (diffHours > 0) {
+                        difference = `+${formattedDiff}h`;
+                        differenceClass = 'positive';
+                    } else if (diffHours < 0) {
+                        difference = `${formattedDiff}h`;
+                        differenceClass = 'negative';
+                    } else {
+                        difference = '0.00h';
+                    }
+                } else {
+                    difference = 'Base';
+                }
+                
+                row.innerHTML = `
+                    <td>${tz.label}</td>
+                    <td>${timeString}<br><small>${dateString}</small></td>
+                    <td class="difference ${differenceClass}">${difference}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Get timezone offset in minutes
+        function getTimezoneOffset(timezoneId) {
+            const now = new Date();
+            const utc = new Date(now.getTime() + (now.getTimezoneOffset() * 60000));
+            const targetTime = new Date(utc.toLocaleString("en-US", {timeZone: timezoneId}));
+            return (targetTime.getTime() - utc.getTime()) / 60000;
+        }
+
+        // Search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('timezoneSearch');
+            const suggestionsContainer = document.getElementById('suggestionsContainer');
+            
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                
+                if (query.length === 0) {
+                    suggestionsContainer.style.display = 'none';
+                    return;
+                }
+                
+                // Filter timezones based on query
+                const filtered = timeZones.filter(tz => 
+                    tz.city.toLowerCase().includes(query) || 
+                    tz.country.toLowerCase().includes(query) ||
+                    tz.label.toLowerCase().includes(query)
+                );
+                
+                // Display suggestions
+                if (filtered.length > 0) {
+                    suggestionsContainer.innerHTML = '';
+                    filtered.forEach(tz => {
+                        const suggestion = document.createElement('div');
+                        suggestion.className = 'suggestion-item';
+                        suggestion.innerHTML = `
+                            <strong>${tz.city}, ${tz.country}</strong>
+                            <span>${tz.label}</span>
+                        `;
+                        suggestion.addEventListener('click', () => {
+                            // Check if timezone is already added
+                            if (!timezoneData.some(t => t.timezoneId === tz.value)) {
+                                addTimezone(tz.value);
+                                searchInput.value = '';
+                                suggestionsContainer.style.display = 'none';
+                            } else {
+                                alert('This time zone is already added!');
+                            }
+                        });
+                        suggestionsContainer.appendChild(suggestion);
+                    });
+                    suggestionsContainer.style.display = 'block';
+                } else {
+                    suggestionsContainer.innerHTML = '<div class="suggestion-item">No matching time zones found</div>';
+                    suggestionsContainer.style.display = 'block';
+                }
+            });
+            
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTimezones();
+            renderAll();
+            setupSearch();
+            
+            // Update clocks every second
+            setInterval(() => {
+                updateClocks();
+                updateSummaryTable();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
